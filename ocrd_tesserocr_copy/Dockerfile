@@ -54,7 +54,8 @@ WORKDIR /build_tesseract
 RUN git checkout ${TESSERACT_REF}
 
 # compile
-RUN ./autogen.sh && ./configure --disable-openmp --disable-shared 'CXXFLAGS=-g -O2 -fno-math-errno -Wall -Wextra -Wpedantic'
+#
+RUN ./autogen.sh && ./configure --disable-openmp --disable-shared 'CXXFLAGS=-g -O2 -fPIC'
 RUN LDFLAGS="-L/usr/local/lib" CFLAGS="-I/usr/local/include" make
 RUN make
 RUN make install && ldconfig
@@ -68,6 +69,7 @@ LABEL \
     org.label-schema.vcs-url="https://github.com/OCR-D/ocrd_tesserocr" \
     org.label-schema.build-date=$BUILD_DATE
 
+ENV DEBIAN_FRONTEND noninteractive
 ENV PYTHONIOENCODING utf8
 
 # avoid HOME/.local/share (hard to predict USER here)
@@ -89,9 +91,8 @@ RUN apt-get install -y --no-install-recommends \
     && make deps install \
     && rm -rf /build-ocrd \
     && apt-get -y remove --auto-remove g++ libtesseract-dev make
-# PPA tessdata prefix (= ocrd_tesserocr moduledir) is owned by root
-# next line causes failure because tesseract-ocr-eng not existing. Not sure if needed, so skipping
-# RUN sudo chmod go+w `dpkg-query -L tesseract-ocr-eng | sed -n s,/eng.traineddata,,p`
+RUN ocrd resmgr download ocrd-tesserocr-recognize osd.traineddata
+RUN ocrd resmgr download ocrd-tesserocr-recognize eng.traineddata
 RUN ocrd resmgr download ocrd-tesserocr-recognize Fraktur.traineddata
 RUN ocrd resmgr download ocrd-tesserocr-recognize deu.traineddata
 

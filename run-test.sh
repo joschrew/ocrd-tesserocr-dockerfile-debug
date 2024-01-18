@@ -1,8 +1,10 @@
 #!/usr/bin/bash
-docker-compose down --remove-orphans
+set -x
+DOCKER_COMPOSE=${1:-docker-compose}
+$DOCKER_COMPOSE down --remove-orphans
 ./clean-data.sh
 sleep 1
-docker-compose up -d --wait
+$DOCKER_COMPOSE up -d --wait
 sleep 10
 res=`curl -v -X POST "localhost:8000/workflow/run?mets_path=/data/vd18test/mets.xml&page_wise=True" -H "Content-type: multipart/form-data" -F "workflow=@test-workflow.txt"`
 #echo "res:>$res<"
