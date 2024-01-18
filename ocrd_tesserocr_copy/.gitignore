@@ -1,0 +1,15 @@
+venv3
+.pytest_cache
+__pycache__
+*.pyc
+*.egg-info
+repo/assets
+test/assets
+.tox
+/build
+/dist
+test-workspace
+*.swp
+/.coverage
+/htmlcov
+/.cache

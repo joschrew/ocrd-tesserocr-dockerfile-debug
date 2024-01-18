@@ -1,0 +1,202 @@
+networks:
+  default:
+    driver: bridge
+    driver_opts:
+      com.docker.network.driver.mtu: ${OCRD_PS_MTU}
+
+services:
+  ocrd-processing-server:
+    container_name: ocrd-processing-server
+    image: ocrd/all:maximum
+    environment:
+      - MONGODB_USER=${MONGODB_USER:-admin}
+      - MONGODB_PASS=${MONGODB_PASS:-admin}
+      - RABBITMQ_USER=${RABBITMQ_USER:-admin}
+      - RABBITMQ_PASS=${RABBITMQ_PASS:-admin}
+      - OCRD_NETWORK_SOCKETS_ROOT_DIR=/data/sockets
+      - OCRD_NETWORK_LOGS_ROOT_DIR=/data/logs
+    command: |
+      /bin/bash -c "echo -e \"
+        internal_callback_url: http://ocrd-processing-server:8000
+        process_queue:
+          address: ocrd-rabbitmq
+          port: 5672
+          skip_deployment: true
+          credentials:
+            username: ${RABBITMQ_USER}
+            password: ${RABBITMQ_PASS}
+        database:
+          address: ocrd-mongodb
+          port: 27017
+          skip_deployment: true
+          credentials:
+            username: ${MONGODB_USER}
+            password: ${MONGODB_PASS}
+        hosts: []\" > /data/ocrd-processing-server-config.yaml && \
+        ocrd network processing-server -a 0.0.0.0:8000 /data/ocrd-processing-server-config.yaml"
+    user: "${USER_ID}:${GROUP_ID}"
+    volumes:
+      - "${DATA_DIR_HOST}:/data"
+    ports:
+      - ${OCRD_PS_PORT}:8000
+
+  ocrd-mongodb:
+    container_name: ocrd-mongodb
+    image: mongo:latest
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGODB_USER:-admin}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGODB_PASS:-admin}
+    ports:
+      - "27018:27017"
+
+  ocrd-rabbitmq:
+    container_name: ocrd-rabbitmq
+    image: rabbitmq:3-management
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER:-admin}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASS:-admin}
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+  ocrd-olena-binarize:
+    image: ocrd/all:maximum
+    container_name: ocrd-olena-binarize
+    command: ocrd-olena-binarize worker --database $MONGODB_URL --queue $RABBITMQ_URL
+    depends_on:
+      #- ocrd-processing-server
+      - ocrd-mongodb
+      - ocrd-rabbitmq
+    user: "${USER_ID}:${GROUP_ID}"
+    volumes:
+      - "./my_ocrd_logging.conf:/etc/ocrd_logging.conf"
+      - "${DATA_DIR_HOST}:/data"
+    environment:
+      - OCRD_NETWORK_LOGS_ROOT_DIR=/data/logs
+
+  ocrd-anybaseocr-crop:
+    image: ocrd/all:maximum
+    container_name: ocrd-anybaseocr-crop
+    command: ocrd-anybaseocr-crop worker --database $MONGODB_URL --queue $RABBITMQ_URL
+    depends_on:
+      #- ocrd-processing-server
+      - ocrd-mongodb
+      - ocrd-rabbitmq
+    user: "${USER_ID}:${GROUP_ID}"
+    volumes:
+      - "./my_ocrd_logging.conf:/etc/ocrd_logging.conf"
+      - "${DATA_DIR_HOST}:/data"
+    environment:
+      - OCRD_NETWORK_LOGS_ROOT_DIR=/data/logs
+
+  ocrd-cis-ocropy-denoise:
+    image: ocrd/all:maximum
+    container_name: ocrd-cis-ocropy-denoise
+    command: ocrd-cis-ocropy-denoise worker --database $MONGODB_URL --queue $RABBITMQ_URL
+    depends_on:
+      #- ocrd-processing-server
+      - ocrd-mongodb
+      - ocrd-rabbitmq
+    user: "${USER_ID}:${GROUP_ID}"
+    volumes:
+      - "./my_ocrd_logging.conf:/etc/ocrd_logging.conf"
+      - "${DATA_DIR_HOST}:/data"
+    environment:
+      - OCRD_NETWORK_LOGS_ROOT_DIR=/data/logs
+
+  ocrd-cis-ocropy-clip:
+    image: ocrd/all:maximum
+    container_name: ocrd-cis-ocropy-clip
+    command: ocrd-cis-ocropy-clip worker --database $MONGODB_URL --queue $RABBITMQ_URL
+    depends_on:
+      #- ocrd-processing-server
+      - ocrd-mongodb
+      - ocrd-rabbitmq
+    user: "${USER_ID}:${GROUP_ID}"
+    volumes:
+      - "./my_ocrd_logging.conf:/etc/ocrd_logging.conf"
+      - "${DATA_DIR_HOST}:/data"
+    environment:
+      - OCRD_NETWORK_LOGS_ROOT_DIR=/data/logs
+
+  ocrd-cis-ocropy-segment:
+    image: ocrd/all:maximum
+    container_name: ocrd-cis-ocropy-segment
+    command: ocrd-cis-ocropy-segment worker --database $MONGODB_URL --queue $RABBITMQ_URL
+    depends_on:
+      #- ocrd-processing-server
+      - ocrd-mongodb
+      - ocrd-rabbitmq
+    user: "${USER_ID}:${GROUP_ID}"
+    volumes:
+      - "./my_ocrd_logging.conf:/etc/ocrd_logging.conf"
+      - "${DATA_DIR_HOST}:/data"
+    environment:
+      - OCRD_NETWORK_LOGS_ROOT_DIR=/data/logs
+
+  ocrd-cis-ocropy-dewarp:
+    image: ocrd/all:maximum
+    container_name: ocrd-cis-ocropy-dewarp
+    command: ocrd-cis-ocropy-dewarp worker --database $MONGODB_URL --queue $RABBITMQ_URL
+    depends_on:
+      #- ocrd-processing-server
+      - ocrd-mongodb
+      - ocrd-rabbitmq
+    user: "${USER_ID}:${GROUP_ID}"
+    volumes:
+      - "./my_ocrd_logging.conf:/etc/ocrd_logging.conf"
+      - "${DATA_DIR_HOST}:/data"
+    environment:
+      - OCRD_NETWORK_LOGS_ROOT_DIR=/data/logs
+
+  ocrd-tesserocr-segment-region:
+    image: ocrd/all:maximum
+    container_name: ocrd-tesserocr-segment-region
+    command: ocrd-tesserocr-segment-region worker --database $MONGODB_URL --queue $RABBITMQ_URL
+    depends_on:
+      #- ocrd-processing-server
+      - ocrd-mongodb
+      - ocrd-rabbitmq
+    user: "${USER_ID}:${GROUP_ID}"
+    volumes:
+      - "./my_ocrd_logging.conf:/etc/ocrd_logging.conf"
+      - "${DATA_DIR_HOST}:/data"
+    environment:
+      - TESSDATA_PREFIX=${TESSDATA_PREFIX}
+      - OCRD_NETWORK_LOGS_ROOT_DIR=/data/logs
+
+  ocrd-tesserocr-recognize:
+    build:
+      context: "ocrd_tesserocr_copy"
+    container_name: ocrd-tesserocr-recognize
+    command: ocrd-tesserocr-recognize worker --database $MONGODB_URL --queue $RABBITMQ_URL
+    depends_on:
+      #- ocrd-processing-server
+      - ocrd-mongodb
+      - ocrd-rabbitmq
+    user: "${USER_ID}:${GROUP_ID}"
+    volumes:
+      - "./my_ocrd_logging.conf:/etc/ocrd_logging.conf"
+      - "$PWD/Fraktur.traineddata:/${TESSDATA_PREFIX}/Fraktur.traineddata"
+      - "$PWD/eng.traineddata:/${TESSDATA_PREFIX}/eng.traineddata"
+      - "$PWD/equ.traineddata:/${TESSDATA_PREFIX}/equ.traineddata"
+      - "$PWD/osd.traineddata:/${TESSDATA_PREFIX}/osd.traineddata"
+      - "${DATA_DIR_HOST}:/data"
+    environment:
+      - TESSDATA_PREFIX=${TESSDATA_PREFIX}
+      - OCRD_NETWORK_LOGS_ROOT_DIR=/data/logs
+
+  ocrd-segment-repair:
+    image: ocrd/all:maximum
+    container_name: ocrd-segment-repair
+    command: ocrd-segment-repair worker --database $MONGODB_URL --queue $RABBITMQ_URL
+    depends_on:
+      #- ocrd-processing-server
+      - ocrd-mongodb
+      - ocrd-rabbitmq
+    user: "${USER_ID}:${GROUP_ID}"
+    volumes:
+      - "./my_ocrd_logging.conf:/etc/ocrd_logging.conf"
+      - "${DATA_DIR_HOST}:/data"
+    environment:
+      - OCRD_NETWORK_LOGS_ROOT_DIR=/data/logs

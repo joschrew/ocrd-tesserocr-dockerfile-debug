@@ -1,0 +1,28 @@
+[MASTER]
+extension-pkg-whitelist=lxml
+ignored-modules=cv2,tesserocr
+
+[MESSAGES CONTROL]
+disable =
+    ungrouped-imports,
+    bad-continuation,
+    trailing-whitespace,
+    missing-docstring,
+    no-self-use,
+    superfluous-parens,
+    invalid-name,
+    line-too-long,
+    too-many-arguments,
+    too-many-branches,
+    too-many-statements,
+    too-many-locals,
+    too-many-nested-blocks,
+    too-few-public-methods,
+    wrong-import-order,
+    duplicate-code
+
+# allow indented whitespace (as required by interpreter):
+no-space-check=empty-line
+
+# allow non-snake-case identifiers:
+good-names=n,i
