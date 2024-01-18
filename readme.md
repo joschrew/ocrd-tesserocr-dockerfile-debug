@@ -4,6 +4,7 @@ Make ocrd_tesserocr work like it works in ocrd_all
 - ocrd_tesserocr-copy:
     - copy of https://github.com/OCR-D/ocrd_tesserocr with latest head: f1036e3
     - only Dockerfile differs
+    - **building the image takes about 5 minutes** on my machine
 
 - docker-compose.ocrdall.yaml:
     - docker-compose file completely based on ocrd/all:maximum
