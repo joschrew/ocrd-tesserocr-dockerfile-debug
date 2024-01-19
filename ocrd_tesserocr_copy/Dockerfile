@@ -96,5 +96,8 @@ RUN ocrd resmgr download ocrd-tesserocr-recognize eng.traineddata
 RUN ocrd resmgr download ocrd-tesserocr-recognize Fraktur.traineddata
 RUN ocrd resmgr download ocrd-tesserocr-recognize deu.traineddata
 
+RUN pip install pudb
+EXPOSE 6900
+
 WORKDIR /data
 VOLUME /data
