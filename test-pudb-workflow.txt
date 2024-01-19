@@ -1,0 +1,1 @@
+tesserocr-recognize      -I O-8     -O PAGE -P textequiv_level word -P model Fraktur
