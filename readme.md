@@ -83,3 +83,12 @@ Make ocrd_tesserocr work like it works in ocrd_all
 - this shows that two filegroups fails: 4 & 6
 - when run with completely ocrd-all (use `cp docker-compose-ocrdall.yaml docker-compose.yaml`
   therefor) everything works
+
+### Use pudb debugger
+- run run-test-pudb.sh
+- wait for some seconds
+- the job should not finish
+- from another terminal use: `telnet 127.0.0.1 6900` to connect to the debugger
+- Problem:
+    - the recognizer processes many images and only one of them fails
+

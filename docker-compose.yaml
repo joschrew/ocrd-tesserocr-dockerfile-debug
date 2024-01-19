@@ -76,6 +76,7 @@ services:
       - "$PWD/equ.traineddata:/${TESSDATA_PREFIX}/equ.traineddata"
       - "$PWD/osd.traineddata:/${TESSDATA_PREFIX}/osd.traineddata"
       - "${DATA_DIR_HOST}:/data"
+      - "${PWD}/pudb-config:/.config"
     environment:
       - TESSDATA_PREFIX=${TESSDATA_PREFIX}
       - OCRD_NETWORK_LOGS_ROOT_DIR=/data/logs
